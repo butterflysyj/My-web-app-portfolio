@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퀴즈 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .quiz-header {
+            margin-bottom: 2rem;
+        }
+
+        .quiz-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quiz-progress {
+            background: #f0f0f0;
+            border-radius: 20px;
+            height: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            margin: 2rem 0;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .answers {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .answer-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .answer-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .answer-btn.correct {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .answer-btn.incorrect {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .score-display {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .final-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .final-score h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .home-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">← 홈으로</a>
+    
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1 class="quiz-title">일반상식 퀴즈</h1>
+            <div class="score-display">
+                점수: <span id="current-score">0</span> / <span id="total-questions">0</span>
+            </div>
+            <div class="quiz-progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="quiz-content">
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="answers" id="answers"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" id="prev-btn" onclick="previousQuestion()">이전</button>
+                <button class="btn" id="next-btn" onclick="nextQuestion()">다음</button>
+            </div>
+        </div>
+
+        <div id="final-result" class="hidden">
+            <div class="final-score">
+                <h2>퀴즈 완료!</h2>
+                <p>최종 점수: <span id="final-score"></span></p>
+                <p id="result-message"></p>
+            </div>
+            <button class="btn" onclick="restartQuiz()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "대한민국의 수도는 어디인가요?",
+                answers: ["서울", "부산", "대구", "인천"],
+                correct: 0
+            },
+            {
+                question: "태양계에서 가장 큰 행성은?",
+                answers: ["토성", "목성", "해왕성", "천왕성"],
+                correct: 1
+            },
+            {
+                question: "1년은 몇 일인가요?",
+                answers: ["364일", "365일", "366일", "367일"],
+                correct: 1
+            },
+            {
+                question: "물의 끓는점은 섭씨 몇 도인가요?",
+                answers: ["90도", "95도", "100도", "105도"],
+                correct: 2
+            },
+            {
+                question: "한국의 전통 무술은?",
+                answers: ["가라테", "태권도", "쿵푸", "유도"],
+                correct: 1
+            },
+            {
+                question: "세계에서 가장 높은 산은?",
+                answers: ["에베레스트", "K2", "칸첸중가", "로체"],
+                correct: 0
+            },
+            {
+                question: "컴퓨터의 두뇌 역할을 하는 부품은?",
+                answers: ["RAM", "하드디스크", "CPU", "그래픽카드"],
+                correct: 2
+            },
+            {
+                question: "무지개의 색깔 수는?",
+                answers: ["5개", "6개", "7개", "8개"],
+                correct: 2
+            },
+            {
+                question: "지구에서 달까지의 거리는 약?",
+                answers: ["38만km", "48만km", "58만km", "68만km"],
+                correct: 0
+            },
+            {
+                question: "한국의 국화는?",
+                answers: ["장미", "무궁화", "국화", "벚꽃"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = -1;
+        let userAnswers = [];
+
+        function initQuiz() {
+            document.getElementById('total-questions').textContent = quizData.length;
+            showQuestion();
+            updateProgress();
+            updateNavigation();
+        }
+
+        function showQuestion() {
+            const question = quizData[currentQuestion];
+            document.getElementById('question').textContent = `${currentQuestion + 1}. ${question.question}`;
+            
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                
+                if (userAnswers[currentQuestion] !== undefined) {
+                    if (index === userAnswers[currentQuestion]) {
+                        button.classList.add('selected');
+                    }
+                }
+                
+                answersContainer.appendChild(button);
+            });
+            
+            selectedAnswer = userAnswers[currentQuestion] || -1;
+        }
+
+        function selectAnswer(answerIndex) {
+            selectedAnswer = answerIndex;
+            userAnswers[currentQuestion] = answerIndex;
+            
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.classList.remove('selected');
+                if (index === answerIndex) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                showQuestion();
+                updateProgress();
+                updateNavigation();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+                updateProgress();
+                updateNavigation();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function updateNavigation() {
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === quizData.length - 1) {
+                nextBtn.textContent = '완료';
+            } else {
+                nextBtn.textContent = '다음';
+            }
+        }
+
+        function finishQuiz() {
+            calculateScore();
+            showResults();
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === quizData[index].correct) {
+                    score++;
+                }
+            });
+        }
+
+        function showResults() {
+            document.getElementById('quiz-content').classList.add('hidden');
+            document.getElementById('final-result').classList.remove('hidden');
+            
+            const finalScore = document.getElementById('final-score');
+            finalScore.textContent = `${score} / ${quizData.length}`;
+            
+            const resultMessage = document.getElementById('result-message');
+            const percentage = (score / quizData.length) * 100;
+            
+            if (percentage >= 80) {
+                resultMessage.textContent = '🎉 훌륭합니다! 상식왕이시네요!';
+                resultMessage.style.color = '#28a745';
+            } else if (percentage >= 60) {
+                resultMessage.textContent = '👍 좋은 성과입니다!';
+                resultMessage.style.color = '#ffc107';
+            } else {
+                resultMessage.textContent = '💪 더 공부해서 다시 도전해보세요!';
+                resultMessage.style.color = '#dc3545';
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = -1;
+            userAnswers = [];
+            
+            document.getElementById('final-result').classList.add('hidden');
+            document.getElementById('quiz-content').classList.remove('hidden');
+            document.getElementById('current-score').textContent = '0';
+            
+            initQuiz();
+        }
+
+        // 페이지 로드 시 퀴즈 초기화
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

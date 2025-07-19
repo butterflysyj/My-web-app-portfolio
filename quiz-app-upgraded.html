@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>난이도별 퀴즈 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2rem;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .quiz-header {
+            margin-bottom: 2rem;
+        }
+
+        .quiz-title {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .difficulty-selector {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .difficulty-title {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .difficulty-btn.easy {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .difficulty-btn.medium {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .difficulty-btn.hard {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .score-display {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .difficulty-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .timer-display {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .timer-display.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .timer-display.danger {
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .quiz-progress {
+            background: #f0f0f0;
+            border-radius: 20px;
+            height: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question-container {
+            margin: 2rem 0;
+        }
+
+        .question {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .answers {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .answer-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .answer-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .answer-btn.correct {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .answer-btn.incorrect {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-start {
+            background: linear-gradient(90deg, #28a745, #20c997);
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+        }
+
+        .final-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .final-score h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .score-breakdown {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .home-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .start-screen p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .quiz-container {
+                padding: 1.5rem;
+            }
+            
+            .quiz-title {
+                font-size: 1.5rem;
+            }
+            
+            .question {
+                font-size: 1.1rem;
+            }
+            
+            .quiz-info {
+                flex-direction: column;
+            }
+            
+            .difficulty-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .difficulty-btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">← 홈으로</a>
+    
+    <div class="quiz-container">
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="start-screen">
+            <div class="quiz-header">
+                <h1 class="quiz-title">📚 난이도별 상식 퀴즈</h1>
+                <p>원하는 난이도를 선택하고 퀴즈를 시작하세요!</p>
+            </div>
+
+            <div class="difficulty-selector">
+                <h3 class="difficulty-title">난이도 선택</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn easy active" onclick="selectDifficulty('easy')">
+                        🟢 쉬움 (초급)
+                    </button>
+                    <button class="difficulty-btn medium" onclick="selectDifficulty('medium')">
+                        🟡 보통 (중급)
+                    </button>
+                    <button class="difficulty-btn hard" onclick="selectDifficulty('hard')">
+                        🔴 어려움 (고급)
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin: 2rem 0;">
+                <h2>선택된 난이도: <span id="selected-difficulty-name">쉬움</span></h2>
+                <p id="difficulty-description">초등학생도 알 수 있는 기본 상식 문제</p>
+            </div>
+
+            <button class="btn btn-start" onclick="startQuiz()">퀴즈 시작하기</button>
+        </div>
+
+        <!-- 퀴즈 화면 -->
+        <div id="quiz-screen" class="hidden">
+            <div class="quiz-header">
+                <h1 class="quiz-title">상식 퀴즈</h1>
+                <div class="quiz-info">
+                    <div class="score-display">
+                        점수: <span id="current-score">0</span> / <span id="total-questions">0</span>
+                    </div>
+                    <div class="difficulty-display" id="current-difficulty">쉬움</div>
+                    <div class="timer-display" id="timer">30</div>
+                </div>
+                <div class="quiz-progress">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <div class="answers" id="answers"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" id="prev-btn" onclick="previousQuestion()">이전</button>
+                <button class="btn" id="next-btn" onclick="nextQuestion()">다음</button>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="final-result" class="hidden">
+            <div class="final-score">
+                <h2>🎉 퀴즈 완료!</h2>
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <span>난이도:</span>
+                        <span id="final-difficulty"></span>
+                    </div>
+                    <div class="score-item">
+                        <span>최종 점수:</span>
+                        <span id="final-score"></span>
+                    </div>
+                    <div class="score-item">
+                        <span>정답률:</span>
+                        <span id="accuracy"></span>
+                    </div>
+                    <div class="score-item">
+                        <span>평균 시간:</span>
+                        <span id="average-time"></span>
+                    </div>
+                </div>
+                <p id="result-message"></p>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="restartQuiz()">다시 시작</button>
+                <button class="btn btn-secondary" onclick="goToStart()">난이도 변경</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 난이도별 문제 데이터
+        const quizDatabase = {
+            easy: [
+                {
+                    question: "대한민국의 수도는 어디인가요?",
+                    answers: ["서울", "부산", "대구", "인천"],
+                    correct: 0,
+                    timeLimit: 30
+                },
+                {
+                    question: "1년은 몇 개월인가요?",
+                    answers: ["10개월", "11개월", "12개월", "13개월"],
+                    correct: 2,
+                    timeLimit: 30
+                },
+                {
+                    question: "물의 끓는점은 섭씨 몇 도인가요?",
+                    answers: ["90도", "95도", "100도", "105도"],
+                    correct: 2,
+                    timeLimit: 30
+                },
+                {
+                    question: "태양은 어느 방향에서 뜨나요?",
+                    answers: ["서쪽", "동쪽", "남쪽", "북쪽"],
+                    correct: 1,
+                    timeLimit: 30
+                },
+                {
+                    question: "한국의 국화는 무엇인가요?",
+                    answers: ["장미", "무궁화", "국화", "벚꽃"],
+                    correct: 1,
+                    timeLimit: 30
+                }
+            ],
+            medium: [
+                {
+                    question: "태양계에서 가장 큰 행성은?",
+                    answers: ["토성", "목성", "해왕성", "천왕성"],
+                    correct: 1,
+                    timeLimit: 25
+                },
+                {
+                    question: "세계에서 가장 높은 산은?",
+                    answers: ["에베레스트", "K2", "칸첸중가", "로체"],
+                    correct: 0,
+                    timeLimit: 25
+                },
+                {
+                    question: "무지개의 색깔 수는?",
+                    answers: ["5개", "6개", "7개", "8개"],
+                    correct: 2,
+                    timeLimit: 25
+                },
+                {
+                    question: "광합성을 하는 식물의 녹색 색소는?",
+                    answers: ["헤모글로빈", "클로로필", "멜라닌", "카로틴"],
+                    correct: 1,
+                    timeLimit: 25
+                },
+                {
+                    question: "지구에서 달까지의 거리는 약 몇 km인가요?",
+                    answers: ["38만km", "48만km", "58만km", "68만km"],
+                    correct: 0,
+                    timeLimit: 25
+                }
+            ],
+            hard: [
+                {
+                    question: "양자역학의 불확정성 원리를 처음 제시한 물리학자는?",
+                    answers: ["아인슈타인", "보어", "하이젠베르크", "슈뢰딩거"],
+                    correct: 2,
+                    timeLimit: 20
+                },
+                {
+                    question: "DNA의 이중나선 구조를 발견한 과학자는?",
+                    answers: ["왓슨과 크릭", "멘델", "다윈", "파스퇴르"],
+                    correct: 0,
+                    timeLimit: 20
+                },
+                {
+                    question: "상대성이론에서 E=mc²의 c는 무엇을 의미하나요?",
+                    answers: ["중력상수", "빛의 속도", "플랑크 상수", "볼츠만 상수"],
+                    correct: 1,
+                    timeLimit: 20
+                },
+                {
+                    question: "세포의 미토콘드리아의 주요 기능은?",
+                    answers: ["단백질 합성", "에너지 생산", "유전자 보관", "세포 분열"],
+                    correct: 1,
+                    timeLimit: 20
+                },
+                {
+                    question: "화학 원소 주기율표를 처음 만든 과학자는?",
+                    answers: ["라부아지에", "멘델레예프", "아보가드로", "돌턴"],
+                    correct: 1,
+                    timeLimit: 20
+                }
+            ]
+        };
+
+        const difficultySettings = {
+            easy: {
+                name: "쉬움 (초급)",
+                description: "초등학생도 알 수 있는 기본 상식 문제",
+                color: "#28a745",
+                scoreMultiplier: 1
+            },
+            medium: {
+                name: "보통 (중급)",
+                description: "중고등학생 수준의 일반 상식 문제",
+                color: "#ffc107",
+                scoreMultiplier: 1.5
+            },
+            hard: {
+                name: "어려움 (고급)",
+                description: "대학생 이상의 전문 지식이 필요한 문제",
+                color: "#dc3545",
+                scoreMultiplier: 2
+            }
+        };
+
+        let currentDifficulty = 'easy';
+        let currentQuizData = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = -1;
+        let userAnswers = [];
+        let timeLeft = 30;
+        let timer = null;
+        let startTime = null;
+        let questionTimes = [];
+
+        function selectDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            
+            // 버튼 스타일 업데이트
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 선택된 난이도 정보 업데이트
+            const setting = difficultySettings[difficulty];
+            document.getElementById('selected-difficulty-name').textContent = setting.name;
+            document.getElementById('difficulty-description').textContent = setting.description;
+        }
+
+        function startQuiz() {
+            currentQuizData = [...quizDatabase[currentDifficulty]];
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            questionTimes = [];
+            
+            // 화면 전환
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            // UI 초기화
+            document.getElementById('total-questions').textContent = currentQuizData.length;
+            document.getElementById('current-difficulty').textContent = difficultySettings[currentDifficulty].name;
+            document.getElementById('current-score').textContent = '0';
+            
+            // 첫 문제 시작
+            showQuestion();
+            updateProgress();
+            updateNavigation();
+            startTimer();
+        }
+
+        function showQuestion() {
+            const question = currentQuizData[currentQuestion];
+            document.getElementById('question').textContent = `${currentQuestion + 1}. ${question.question}`;
+            
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = `${String.fromCharCode(65 + index)}. ${answer}`;
+                button.onclick = () => selectAnswer(index);
+                
+                if (userAnswers[currentQuestion] !== undefined) {
+                    if (index === userAnswers[currentQuestion]) {
+                        button.classList.add('selected');
+                    }
+                }
+                
+                answersContainer.appendChild(button);
+            });
+            
+            selectedAnswer = userAnswers[currentQuestion] || -1;
+            
+            // 타이머 초기화
+            timeLeft = question.timeLimit || 30;
+            startTime = Date.now();
+            startTimer();
+        }
+
+        function selectAnswer(answerIndex) {
+            if (timer) {
+                const timeTaken = Date.now() - startTime;
+                questionTimes[currentQuestion] = timeTaken;
+            }
+            
+            selectedAnswer = answerIndex;
+            userAnswers[currentQuestion] = answerIndex;
+            
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.classList.remove('selected');
+                if (index === answerIndex) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // 자동으로 다음 문제로 이동 (선택적)
+            clearTimeout(timer);
+            setTimeout(() => {
+                if (currentQuestion < currentQuizData.length - 1) {
+                    nextQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        function startTimer() {
+            clearTimeout(timer);
+            updateTimerDisplay();
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearTimeout(timer);
+                    // 시간 초과 시 자동으로 다음 문제로
+                    if (currentQuestion < currentQuizData.length - 1) {
+                        nextQuestion();
+                    } else {
+                        finishQuiz();
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = `${timeLeft}초`;
+            
+            if (timeLeft <= 5) {
+                timerElement.className = 'timer-display danger';
+            } else if (timeLeft <= 10) {
+                timerElement.className = 'timer-display warning';
+            } else {
+                timerElement.className = 'timer-display';
+            }
+        }
+
+        function nextQuestion() {
+            clearTimeout(timer);
+            
+            if (currentQuestion < currentQuizData.length - 1) {
+                currentQuestion++;
+                showQuestion();
+                updateProgress();
+                updateNavigation();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function previousQuestion() {
+            clearTimeout(timer);
+            
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+                updateProgress();
+                updateNavigation();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / currentQuizData.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function updateNavigation() {
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestion === currentQuizData.length - 1) {
+                nextBtn.textContent = '완료';
+            } else {
+                nextBtn.textContent = '다음';
+            }
+        }
+
+        function finishQuiz() {
+            clearTimeout(timer);
+            calculateScore();
+            showResults();
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === currentQuizData[index].correct) {
+                    score++;
+                }
+            });
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('final-result').classList.remove('hidden');
+            
+            const totalQuestions = currentQuizData.length;
+            const accuracy = ((score / totalQuestions) * 100).toFixed(1);
+            const averageTime = questionTimes.length > 0 ? 
+                (questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length / 1000).toFixed(1) : 0;
+            
+            // 난이도별 점수 계산
+            const baseScore = score;
+            const multiplier = difficultySettings[currentDifficulty].scoreMultiplier;
+            const finalScore = Math.round(baseScore * multiplier);
+            
+            document.getElementById('final-difficulty').textContent = difficultySettings[currentDifficulty].name;
+            document.getElementById('final-score').textContent = `${score} / ${totalQuestions} (×${multiplier} = ${finalScore}점)`;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('average-time').textContent = `${averageTime}초`;
+            
+            const resultMessage = document.getElementById('result-message');
+            const percentage = parseFloat(accuracy);
+            
+            if (percentage >= 90) {
+                resultMessage.textContent = '🏆 완벽합니다! 상식왕이시네요!';
+                resultMessage.style.color = '#28a745';
+            } else if (percentage >= 80) {
+                resultMessage.textContent = '🎉 훌륭합니다! 매우 좋은 성과입니다!';
+                resultMessage.style.color = '#28a745';
+            } else if (percentage >= 70) {
+                resultMessage.textContent = '👍 좋은 성과입니다!';
+                resultMessage.style.color = '#ffc107';
+            } else if (percentage >= 60) {
+                resultMessage.textContent = '😊 괜찮은 결과입니다!';
+                resultMessage.style.color = '#ffc107';
+            } else {
+                resultMessage.textContent = '💪 더 공부해서 다시 도전해보세요!';
+                resultMessage.style.color = '#dc3545';
+            }
+        }
+
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        function goToStart() {
+            document.getElementById('final-result').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            clearTimeout(timer);
+        }
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            selectDifficulty('easy');
+        };
+    </script>
+</body>
+</html>

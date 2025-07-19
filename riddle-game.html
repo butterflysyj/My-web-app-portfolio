@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수수깨끼 앱</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .riddle-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .riddle-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .riddle-question {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+        
+        .riddle-answer {
+            font-size: 1.2rem;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .btn-show-answer {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-show-answer:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .btn-next {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-next:hover {
+            background: #45b7aa;
+            transform: translateY(-2px);
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .home-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">← 홈으로</a>
+    
+    <div class="riddle-container">
+        <header>
+            <h1>🧩 수수깨끼 게임</h1>
+            <p>재미있는 한국어 수수깨끼로 두뇌를 훈련해보세요!</p>
+        </header>
+
+        <div class="score-display">
+            <span>정답: <span id="correctCount">0</span></span> | 
+            <span>총 문제: <span id="totalCount">0</span></span>
+        </div>
+
+        <div class="riddle-card">
+            <div class="riddle-question" id="riddleQuestion">
+                문제를 불러오는 중...
+            </div>
+            <div class="riddle-answer" id="riddleAnswer"></div>
+            <button class="btn-show-answer" onclick="showAnswer()">답 보기</button>
+            <button class="btn-next" onclick="nextRiddle()" style="display: none;">다음 문제</button>
+        </div>
+    </div>
+
+    <script>
+        // 수수깨끼 데이터베이스
+        const riddles = [
+            {
+                question: "세상에서 가장 큰 방은 무엇일까요?",
+                answer: "방송 (방 + 송)"
+            },
+            {
+                question: "세상에서 가장 작은 집은 무엇일까요?",
+                answer: "집집 (집 + 집)"
+            },
+            {
+                question: "세상에서 가장 빠른 차는 무엇일까요?",
+                answer: "차차 (차 + 차)"
+            },
+            {
+                question: "세상에서 가장 맛있는 과일은 무엇일까요?",
+                answer: "과일과일 (과일 + 과일)"
+            },
+            {
+                question: "세상에서 가장 예쁜 꽃은 무엇일까요?",
+                answer: "꽃꽃 (꽃 + 꽃)"
+            },
+            {
+                question: "세상에서 가장 큰 바다는 무엇일까요?",
+                answer: "바다바다 (바다 + 바다)"
+            },
+            {
+                question: "세상에서 가장 작은 새는 무엇일까요?",
+                answer: "새새 (새 + 새)"
+            },
+            {
+                question: "세상에서 가장 빠른 말은 무엇일까요?",
+                answer: "말말 (말 + 말)"
+            },
+            {
+                question: "세상에서 가장 맛있는 음식은 무엇일까요?",
+                answer: "음식음식 (음식 + 음식)"
+            },
+            {
+                question: "세상에서 가장 예쁜 여자는 무엇일까요?",
+                answer: "여자여자 (여자 + 여자)"
+            },
+            {
+                question: "세상에서 가장 큰 산은 무엇일까요?",
+                answer: "산산 (산 + 산)"
+            },
+            {
+                question: "세상에서 가장 작은 물고기는 무엇일까요?",
+                answer: "물고기물고기 (물고기 + 물고기)"
+            },
+            {
+                question: "세상에서 가장 빠른 새는 무엇일까요?",
+                answer: "새새 (새 + 새)"
+            },
+            {
+                question: "세상에서 가장 맛있는 빵은 무엇일까요?",
+                answer: "빵빵 (빵 + 빵)"
+            },
+            {
+                question: "세상에서 가장 예쁜 나무는 무엇일까요?",
+                answer: "나무나무 (나무 + 나무)"
+            }
+        ];
+
+        let currentRiddleIndex = 0;
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+
+        // 페이지 로드 시 첫 번째 수수깨끼 표시
+        window.onload = function() {
+            displayRiddle();
+            updateScore();
+        };
+
+        // 수수깨끼 표시 함수
+        function displayRiddle() {
+            const riddle = riddles[currentRiddleIndex];
+            document.getElementById('riddleQuestion').textContent = riddle.question;
+            document.getElementById('riddleAnswer').textContent = riddle.answer;
+            document.getElementById('riddleAnswer').style.display = 'none';
+            document.querySelector('.btn-show-answer').style.display = 'inline-block';
+            document.querySelector('.btn-next').style.display = 'none';
+        }
+
+        // 답 보기 함수
+        function showAnswer() {
+            document.getElementById('riddleAnswer').style.display = 'block';
+            document.querySelector('.btn-show-answer').style.display = 'none';
+            document.querySelector('.btn-next').style.display = 'inline-block';
+            totalAnswered++;
+            updateScore();
+        }
+
+        // 다음 수수깨끼로 이동
+        function nextRiddle() {
+            currentRiddleIndex++;
+            
+            // 모든 수수깨끼를 다 풀었을 경우
+            if (currentRiddleIndex >= riddles.length) {
+                // 결과 표시
+                const riddleCard = document.querySelector('.riddle-card');
+                riddleCard.innerHTML = `
+                    <h2>🎉 수수깨끼 완료!</h2>
+                    <p>총 ${riddles.length}문제 중 ${correctAnswers}문제를 맞추셨습니다!</p>
+                    <button class="btn-next" onclick="restartGame()">다시 시작</button>
+                `;
+                return;
+            }
+            
+            displayRiddle();
+        }
+
+        // 게임 재시작
+        function restartGame() {
+            currentRiddleIndex = 0;
+            correctAnswers = 0;
+            totalAnswered = 0;
+            displayRiddle();
+            updateScore();
+        }
+
+        // 점수 업데이트
+        function updateScore() {
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('totalCount').textContent = totalAnswered;
+        }
+    </script>
+</body>
+</html> 

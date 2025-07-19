@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수학 연산 게임</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .math-game {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            min-width: 120px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .control-group select,
+        .control-group button {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .control-group select {
+            background: white;
+            color: #333;
+        }
+        
+        .control-group button {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-group button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .question-area {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .question {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .answer-input {
+            font-size: 2rem;
+            padding: 15px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .submit-btn {
+            background: #28a745;
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+            height: 40px;
+        }
+        
+        .feedback.correct {
+            color: #28a745;
+        }
+        
+        .feedback.incorrect {
+            color: #dc3545;
+        }
+        
+        .game-over {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .restart-btn {
+            background: #667eea;
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #dc3545;
+        }
+        
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .home-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .math-game {
+                padding: 10px;
+            }
+            
+            .question {
+                font-size: 2rem;
+            }
+            
+            .answer-input {
+                font-size: 1.5rem;
+                width: 150px;
+            }
+            
+            .game-controls {
+                flex-direction: column;
+            }
+            
+            .game-stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">← 홈으로</a>
+    <div class="math-game">
+        <div class="game-header">
+            <h1>🔢 수학 연산 게임</h1>
+            <p>재미있는 수학 게임으로 연산 실력을 향상시키세요!</p>
+        </div>
+        
+        <div id="menu-screen">
+            <div class="game-controls">
+                <div class="control-group">
+                    <label for="operation">연산 선택:</label>
+                    <select id="operation">
+                        <option value="mixed">혼합</option>
+                        <option value="addition">덧셈</option>
+                        <option value="subtraction">뺄셈</option>
+                        <option value="multiplication">곱셈</option>
+                        <option value="division">나눗셈</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="difficulty">난이도:</label>
+                    <select id="difficulty">
+                        <option value="easy">쉬움 (1-10)</option>
+                        <option value="medium">보통 (1-50)</option>
+                        <option value="hard">어려움 (1-100)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="game-mode">게임 모드:</label>
+                    <select id="game-mode">
+                        <option value="time">시간 제한 (60초)</option>
+                        <option value="questions">문제 수 (10문제)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <button onclick="startGame()">게임 시작</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="game-screen" class="hidden">
+            <div class="game-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="score">0</div>
+                    <div class="stat-label">점수</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="correct-count">0</div>
+                    <div class="stat-label">정답</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-count">0</div>
+                    <div class="stat-label">총 문제</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number timer" id="timer">60</div>
+                    <div class="stat-label">남은 시간</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            
+            <div class="question-area">
+                <div class="question" id="question">5 + 3 = ?</div>
+                <div>
+                    <input type="number" id="answer-input" class="answer-input" placeholder="답을 입력하세요" />
+                    <button onclick="submitAnswer()" class="submit-btn">확인</button>
+                </div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+            
+            <button onclick="endGame()" class="restart-btn">게임 종료</button>
+        </div>
+        
+        <div id="game-over-screen" class="hidden">
+            <div class="game-over">
+                <h2>게임 종료!</h2>
+                <div class="final-score" id="final-score">0점</div>
+                <p>정답률: <span id="accuracy">0%</span></p>
+                <p>총 문제 수: <span id="total-questions">0</span></p>
+                <p>정답 수: <span id="correct-answers">0</span></p>
+                <button onclick="restartGame()" class="restart-btn">다시 시작</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="math-game.js"></script>
+</body>
+</html>
